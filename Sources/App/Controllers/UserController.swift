@@ -22,8 +22,13 @@ final class UserController {
                 let hashedPassword = try digest.hash(newUser.password)
                 let user = User(id: nil, email: newUser.email, passwordHash: hashedPassword)
 
-                return user.save(on: req).map({ _ in
-                    return AuthenticatedUser(email: user.email, token: "")
+                return user.save(on: req).flatMap({ savedUser in
+                    let tokenString = try URandom().generateData(count: 32).base64EncodedString()
+                    let token = UserToken(id: nil, string: tokenString, userID: savedUser.id!)
+
+                    return token.save(on: req).map({ savedToken in
+                        return AuthenticatedUser(email: user.email, token: tokenString)
+                    })
                 })
             })
         })

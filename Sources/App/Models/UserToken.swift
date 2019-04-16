@@ -33,3 +33,5 @@ extension UserToken: Token {
         return \.userID
     }
 }
+
+extension UserToken: Migration {}
