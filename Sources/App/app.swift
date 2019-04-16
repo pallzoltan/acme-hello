@@ -5,7 +5,10 @@ public func app(_ env: Environment) throws -> Application {
     var config = Config.default()
     var env = env
     var services = Services.default()
+    let contentConfig = ContentConfig.default()
+    services.register(contentConfig)
     try configure(&config, &env, &services)
+    
     let app = try Application(config: config, environment: env, services: services)
     try boot(app)
     return app
