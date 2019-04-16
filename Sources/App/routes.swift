@@ -7,6 +7,7 @@ public func routes(_ router: Router) throws {
 
     let userController = UserController()
     router.post("register", use: userController.create)
+    router.post("login", use: userController.login)
 
     router.get("password", String.parameter, use: userController.password)
 

@@ -5,10 +5,10 @@ import Crypto
 /// Controls basic CRUD operations on `User`s.
 final class UserController {
 
-    /// Saves a decoded `NewUser` to the database.
+    /// Saves a decoded `UnauthenticatedUser` to the database.
     func create(_ req: Request) throws -> Future<AuthenticatedUser> {
 
-        return try req.content.decode(NewUser.self).flatMap({ newUser in
+        return try req.content.decode(UnauthenticatedUser.self).flatMap({ newUser in
 
             return User.query(on: req).filter(\.email, .equal, newUser.email).first().flatMap({ firstUser in
 
@@ -30,6 +30,30 @@ final class UserController {
                         return AuthenticatedUser(email: user.email, token: tokenString)
                     })
                 })
+            })
+        })
+    }
+
+    func login(_ req: Request) throws -> Future<AuthenticatedUser> {
+        return try req.content.decode(UnauthenticatedUser.self).flatMap({ loginUser in
+
+            return User.query(on: req).filter(\.email, .equal, loginUser.email).first().map({ foundUser in
+
+                let digest = try req.make(BCryptDigest.self)
+
+                guard let foundUser = foundUser else {
+                    throw Abort(.notFound,
+                                reason: "User doesn't exist.",
+                                identifier: nil)
+                }
+
+                if try !digest.verify(loginUser.password, created: foundUser.passwordHash) {
+                    throw Abort(.unauthorized,
+                                reason: "Wrong credentials.",
+                                identifier: nil)
+                }
+
+                return AuthenticatedUser(email: loginUser.email, token: "test")
             })
         })
     }
