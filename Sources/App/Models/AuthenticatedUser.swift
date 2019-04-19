@@ -8,7 +8,6 @@
 import Vapor
 
 struct AuthenticatedUser: Decodable {
-    var email: String
     var token: String
 }
 
